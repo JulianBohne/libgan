@@ -1,29 +1,27 @@
 @echo off
 
-set task="%~1"
+set libgan_task="%~1"
 shift
 
 @rem First test everything where we have to show help
-if %task%==""       goto :show_help
-if %task%=="--help" goto :show_help
-if %task%=="-help"  goto :show_help
-if %task%=="help"   goto :show_help
-if %task%=="/?"     goto :show_help
+if %libgan_task%==""       goto :show_help
+if %libgan_task%=="--help" goto :show_help
+if %libgan_task%=="-help"  goto :show_help
+if %libgan_task%=="help"   goto :show_help
+if %libgan_task%=="/?"     goto :show_help
 
-if %task%=="require" goto :get_library_task
-if %task%=="clear"   goto :clear_cache_task
-if %task%=="list"    goto :list_task
+call :cd_to_script_directory
 
-call :logger ERROR "Unknown argument: %task%"
+if %libgan_task%=="require" goto :get_library_task
+if %libgan_task%=="clear"   goto :clear_cache_task
+if %libgan_task%=="list"    goto :list_task
+
+call :logger ERROR "Unknown argument: %libgan_task%"
 call :logger INFO "Try calling --help for help"
 exit /b 1
 
 @rem -------------------------- List Task ---------------------------
 :list_task
-
-@rem Change directory to script directory
-@rem https://java2blog.com/batch-get-script-directory/#Using_PUSHD_Command
-pushd "%~dp0"
 
 echo.
 echo Available Libraries:
@@ -56,10 +54,6 @@ shift
 
 if not %clear_flag%=="--all" (call :logger ERROR "Flag '--all' expected (nothing else implemented yet)"& exit /b 1)
 
-@rem Change directory to script directory
-@rem https://java2blog.com/batch-get-script-directory/#Using_PUSHD_Command
-pushd "%~dp0"
-
 @rem Clear all libs
 rd /S /Q libs
 
@@ -73,10 +67,6 @@ exit /b 0
 if "%~1"=="" (call :logger ERROR "No library name given"& exit /b 1)
 set lib_name=%~1
 shift
-
-@rem Change directory to script directory
-@rem https://java2blog.com/batch-get-script-directory/#Using_PUSHD_Command
-pushd "%~dp0"
 
 if not exist libs mkdir libs
 
@@ -179,7 +169,14 @@ echo libgan clear --all
 echo.
 echo Example: libgan require raylib
 echo.
-exit /b
+exit /b 0
+
+@rem -------------- Change Directory and Push to Stack --------------
+:cd_to_script_directory
+@rem Change directory to script directory
+@rem https://java2blog.com/batch-get-script-directory/#Using_PUSHD_Command
+pushd "%~dp0"
+exit /b 0
 
 @rem --------------------------- Loggers ----------------------------
 @rem Colors: https://www.codeproject.com/Questions/5250523/How-to-change-color-of-a-specific-line-in-batch-sc
