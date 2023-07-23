@@ -1,9 +1,78 @@
 @echo off
 
+set task="%~1"
+shift
 
-if not "%~1"=="require" (call :logger ERROR "Expected 'require'"& exit /b 1)
-if "%~2"=="" (call :logger ERROR "No library name given"& exit /b 1)
-set lib_name=%~2
+@rem First test everything where we have to show help
+if %task%==""       goto :show_help
+if %task%=="--help" goto :show_help
+if %task%=="-help"  goto :show_help
+if %task%=="help"   goto :show_help
+if %task%=="/?"     goto :show_help
+
+if %task%=="require" goto :get_library_task
+if %task%=="clear"   goto :clear_cache_task
+if %task%=="list"    goto :list_task
+
+call :logger ERROR "Unknown argument: %task%"
+call :logger INFO "Try calling --help for help"
+exit /b 1
+
+@rem -------------------------- List Task ---------------------------
+:list_task
+
+@rem Change directory to script directory
+@rem https://java2blog.com/batch-get-script-directory/#Using_PUSHD_Command
+pushd "%~dp0"
+
+echo.
+echo Available Libraries:
+
+cd configs
+@rem https://stackoverflow.com/questions/138497/iterate-all-files-in-a-directory-using-a-for-loop
+for %%f in (*.bat) do (
+    call :print_library_info "%%f"
+)
+echo.
+
+popd
+exit /b 0
+
+@rem This is just because batch is stupid (can't do this in the loop ig)
+:print_library_info
+set description=
+set library_name=%~1
+set library_name=%library_name:~0,-4%
+call %library_name%.bat
+if not "%description%"=="" set description=- %description%
+echo %library_name% %description%
+
+exit /b 0
+
+@rem ------------------------- Clear Cache --------------------------
+:clear_cache_task
+set clear_flag="%~1"
+shift
+
+if not %clear_flag%=="--all" (call :logger ERROR "Flag '--all' expected (nothing else implemented yet)"& exit /b 1)
+
+@rem Change directory to script directory
+@rem https://java2blog.com/batch-get-script-directory/#Using_PUSHD_Command
+pushd "%~dp0"
+
+@rem Clear all libs
+rd /S /Q libs
+
+popd
+exit /b 0
+@rem ----------------------------------------------------------------
+
+
+@rem --------------------- Get Library + Config ---------------------
+:get_library_task
+if "%~1"=="" (call :logger ERROR "No library name given"& exit /b 1)
+set lib_name=%~1
+shift
 
 @rem Change directory to script directory
 @rem https://java2blog.com/batch-get-script-directory/#Using_PUSHD_Command
@@ -98,6 +167,19 @@ if not "%response_code%"=="200" (
 exit /b 0
 @rem ----------------------------------------------------------------
 
+
+@rem -------------------------- Show Help ---------------------------
+:show_help
+echo.
+echo Libgan is used with builtch to easily use libraries
+echo.
+echo libgan require ^<library^>
+echo libgan list (--installed)
+echo libgan clear --all
+echo.
+echo Example: libgan require raylib
+echo.
+exit /b
 
 @rem --------------------------- Loggers ----------------------------
 @rem Colors: https://www.codeproject.com/Questions/5250523/How-to-change-color-of-a-specific-line-in-batch-sc

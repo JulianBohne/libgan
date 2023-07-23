@@ -11,3 +11,6 @@ set archive_extension=zip
 set include_dir=include
 set library_dir=lib
 set linker_flags=-lraylib -lopengl32 -lgdi32 -lwinmm
+
+@rem -------------------------- Meta Data ---------------------------
+set description=Raylib is a multi-media library for games and graphics
