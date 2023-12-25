@@ -1,14 +1,24 @@
 @echo off
 
+@rem The MIT license can be found at the bottom of the file
+
+@rem ------------------ Change to unicode ------------------
+@rem https://stackoverflow.com/questions/36040704/unicode-symbols-in-a-batch-file
+chcp 65001>nul
+
 set libgan_task="%~1"
 shift
 
 @rem First test everything where we have to show help
 if %libgan_task%==""       goto :show_help
 if %libgan_task%=="--help" goto :show_help
-if %libgan_task%=="-help"  goto :show_help
+if %libgan_task%=="-h"  goto :show_help
 if %libgan_task%=="help"   goto :show_help
 if %libgan_task%=="/?"     goto :show_help
+
+if %libgan_task%=="--version"  goto :show_version
+if %libgan_task%=="-v"  goto :show_version
+if %libgan_task%=="version"  goto :show_version
 
 call :cd_to_script_directory
 
@@ -72,7 +82,7 @@ if not exist libs mkdir libs
 
 @rem Get the config for the library
 if not exist configs/%lib_name%.bat (call :logger ERROR "Could not find %lib_name%.bat in: %CD%\configs"& exit /b 1)
-call configs/%lib_name%
+call configs/%lib_name% "%~1"
 
 if "%base_archive_name%"=="" (call :logger ERROR "No 'base_archive_name' was set by the config"& exit /b 1)
 
@@ -163,11 +173,21 @@ exit /b 0
 echo.
 echo Libgan is used with builtch to easily use libraries
 echo.
-echo libgan require ^<library^>
+echo libgan require ^<library^> (version)
 echo libgan list (--installed)
 echo libgan clear --all
+echo libgan version
 echo.
-echo Example: libgan require raylib
+echo Example: libgan require raylib 5.0
+echo.
+exit /b 0
+
+@rem ------------------------- Show Version -------------------------
+:show_version
+echo.
+echo ------------ Libgan ------------
+echo --------- Version 0.1.1 ---------
+echo Made with [91mhatred[0m for batch 💚
 echo.
 exit /b 0
 
@@ -193,7 +213,7 @@ goto :internal_logger
 set color=[90m
 set type=%~1
 if "%type%"=="DEBUG" (
-    if "%show_debug%"=="false" exit /b
+    if "%show_debug%"=="false" exit /b 0
 )
 if "%type%"=="ERROR" set color=[91m
 if "%type%"=="INFO" set color=[94m
